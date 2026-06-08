@@ -1,8 +1,8 @@
 """Synthesizer agent — produces the final structured due diligence report."""
 
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import SYNTHESIZER_AGENT_PROMPT
+from providers import get_llm
 import json
 
 
@@ -13,7 +13,7 @@ def synthesizer_agent(state: dict) -> dict:
         validated = state.get("validated_findings", {})
         query = state.get("query", "Unknown company")
 
-        llm = ChatOpenAI(model="gpt-4o", temperature=0.2)
+        llm = get_llm(temperature=0.2)
         response = llm.invoke([
             SystemMessage(content=SYNTHESIZER_AGENT_PROMPT),
             HumanMessage(content=(

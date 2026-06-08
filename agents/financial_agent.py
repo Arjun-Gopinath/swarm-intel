@@ -1,10 +1,9 @@
 """Financial data agent — retrieves financials via yfinance (public) and web search (private)."""
 
 import yfinance as yf
-from langchain_openai import ChatOpenAI
-from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import FINANCIAL_AGENT_PROMPT
+from providers import get_llm, get_search
 
 
 def financial_agent(state: dict) -> dict:
@@ -30,10 +29,10 @@ def financial_agent(state: dict) -> dict:
             pass  # Not a public ticker, fall through to web search
 
         # Web search for financial context (works for private companies too)
-        search = TavilySearchResults(max_results=5)
+        search = get_search()
         raw = search.invoke(f"{query} funding valuation revenue financials")
 
-        llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        llm = get_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=FINANCIAL_AGENT_PROMPT),
             HumanMessage(content=(

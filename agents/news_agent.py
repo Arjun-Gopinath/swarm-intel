@@ -1,10 +1,8 @@
 """News research agent — searches recent news about a company or topic."""
 
-from langchain_openai import ChatOpenAI
-from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import NEWS_AGENT_PROMPT
-import os
+from providers import get_llm, get_search
 
 
 def news_agent(state: dict) -> dict:
@@ -13,10 +11,10 @@ def news_agent(state: dict) -> dict:
     errors = []
 
     try:
-        search = TavilySearchResults(max_results=5)
+        search = get_search()
         raw = search.invoke(f"{query} company news 2024 2025")
 
-        llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        llm = get_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=NEWS_AGENT_PROMPT),
             HumanMessage(content=f"Company/topic: {query}\n\nRaw search results:\n{raw}"),

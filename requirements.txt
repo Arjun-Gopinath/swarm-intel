@@ -1,8 +1,6 @@
 langgraph>=0.2.0
 langchain>=0.3.0
-langchain-openai>=0.2.0
 langchain-community>=0.3.0
-tavily-python>=0.3.0
 yfinance>=0.2.0
 streamlit>=1.39.0
 python-dotenv>=1.0.0
@@ -10,3 +8,13 @@ requests>=2.31.0
 beautifulsoup4>=4.12.0
 pydantic>=2.0.0
 reportlab>=4.0.0
+
+# LLM providers — install the one(s) you need
+langchain-ollama>=0.2.0       # for LLM_PROVIDER=ollama (default, no API key)
+langchain-anthropic>=0.3.0    # for LLM_PROVIDER=claude
+langchain-openai>=0.2.0       # for LLM_PROVIDER=openai
+
+# Search providers — duckduckgo needs no key; tavily requires TAVILY_API_KEY
+duckduckgo-search>=6.0.0      # for SEARCH_PROVIDER=duckduckgo (default)
+ddgs>=6.0.0                   # required by langchain-community for DuckDuckGo
+tavily-python>=0.3.0          # for SEARCH_PROVIDER=tavily

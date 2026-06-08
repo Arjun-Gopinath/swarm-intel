@@ -1,9 +1,8 @@
 """Regulatory and legal exposure agent."""
 
-from langchain_openai import ChatOpenAI
-from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import REGULATORY_AGENT_PROMPT
+from providers import get_llm, get_search
 
 
 def regulatory_agent(state: dict) -> dict:
@@ -12,12 +11,12 @@ def regulatory_agent(state: dict) -> dict:
     errors = []
 
     try:
-        search = TavilySearchResults(max_results=5)
+        search = get_search()
 
         legal_raw = search.invoke(f"{query} lawsuit litigation legal regulatory violation fine")
         compliance_raw = search.invoke(f"{query} GDPR CCPA data breach privacy compliance")
 
-        llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        llm = get_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=REGULATORY_AGENT_PROMPT),
             HumanMessage(content=(

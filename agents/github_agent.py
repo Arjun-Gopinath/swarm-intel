@@ -1,10 +1,9 @@
 """GitHub technical intelligence agent — uses GitHub API + web search."""
 
 import requests
-from langchain_openai import ChatOpenAI
-from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import GITHUB_AGENT_PROMPT
+from providers import get_llm, get_search
 import os
 
 
@@ -36,10 +35,10 @@ def github_agent(state: dict) -> dict:
         org_slug = query.lower().replace(" ", "").replace(".", "")
         github_data = _fetch_github_org(org_slug)
 
-        search = TavilySearchResults(max_results=4)
+        search = get_search()
         web_raw = search.invoke(f"{query} GitHub open source tech stack engineering")
 
-        llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        llm = get_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=GITHUB_AGENT_PROMPT),
             HumanMessage(content=(

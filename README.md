@@ -1,8 +1,8 @@
-# 🕵️ swarm-intel
+# swarm-intel
 
 **Multi-Agent Due Diligence Research Swarm** — built for the Microsoft Build AI Hackathon (Agent Swarms track).
 
-Given a company name or topic, swarm-intel dispatches 5 specialized AI agents in parallel to research news, financials, professional data, technical presence, and regulatory exposure — then cross-validates and synthesizes everything into a structured analyst brief in under 2 minutes.
+Given a company name or topic, swarm-intel dispatches 5 specialized AI agents in parallel to research news, financials, professional data, technical presence, and regulatory exposure — then cross-validates and synthesizes everything into a structured analyst brief.
 
 ---
 
@@ -10,15 +10,15 @@ Given a company name or topic, swarm-intel dispatches 5 specialized AI agents in
 
 A single query triggers a coordinated swarm:
 
-| Agent                | Data Source         | Focus                                         |
-| -------------------- | ------------------- | --------------------------------------------- |
-| 📰 News Agent        | Tavily Search       | Recent news, funding, leadership changes      |
-| 💰 Financial Agent   | yFinance + Tavily   | Revenue, valuation, funding history           |
-| 👥 LinkedIn Agent    | Tavily (web proxy)  | Headcount, leadership, team growth            |
-| 💻 GitHub Agent      | GitHub API + Tavily | Tech stack, OSS activity, engineering culture |
-| ⚖️ Regulatory Agent  | Tavily Search       | Lawsuits, compliance risks, violations        |
-| ✅ Validator Agent   | GPT-4o              | Cross-checks conflicting facts, flags gaps    |
-| 📋 Synthesizer Agent | GPT-4o              | Produces the final 10-section analyst report  |
+| Agent             | Focus                                         |
+| ----------------- | --------------------------------------------- |
+| News Agent        | Recent news, funding, leadership changes      |
+| Financial Agent   | Revenue, valuation, funding history           |
+| LinkedIn Agent    | Headcount, leadership, team growth            |
+| GitHub Agent      | Tech stack, OSS activity, engineering culture |
+| Regulatory Agent  | Lawsuits, compliance risks, violations        |
+| Validator Agent   | Cross-checks conflicting facts, flags gaps    |
+| Synthesizer Agent | Produces the final 10-section analyst report  |
 
 ---
 
@@ -48,6 +48,8 @@ User Query
 
 Built with **LangGraph** for precise control over agent coordination and parallel execution via the `Send()` API.
 
+Providers are swappable via environment variables — no code changes needed to switch between LLMs or search backends.
+
 ---
 
 ## Setup
@@ -55,8 +57,8 @@ Built with **LangGraph** for precise control over agent coordination and paralle
 ### Prerequisites
 
 - Python 3.11+
-- OpenAI API key
-- Tavily API key (free tier at [tavily.com](https://tavily.com))
+- An LLM provider (see options below)
+- A search provider (see options below)
 
 ### Install
 
@@ -68,16 +70,52 @@ python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
 pip install -r requirements.txt
+pip install -e .           # registers the swarm-intel CLI command
+pip install -e .           # registers the swarm-intel CLI command
 ```
 
 ### Configure
 
 ```bash
 cp .env.example .env
-# Edit .env and add your API keys
+# Edit .env to set your providers and any required API keys
 ```
 
-### Run
+---
+
+## Provider Options
+
+### LLM (`LLM_PROVIDER`)
+
+| Value              | Model default     | Requires                                                   |
+| ------------------ | ----------------- | ---------------------------------------------------------- |
+| `ollama` (default) | `llama3`          | [Ollama](https://ollama.com) installed locally, no API key |
+| `claude`           | `claude-opus-4-8` | `ANTHROPIC_API_KEY`                                        |
+| `openai`           | `gpt-4o`          | `OPENAI_API_KEY`                                           |
+
+Override the model with `LLM_MODEL=<model-name>`.
+
+### Search (`SEARCH_PROVIDER`)
+
+| Value                  | Requires                                                         |
+| ---------------------- | ---------------------------------------------------------------- |
+| `duckduckgo` (default) | Nothing — no API key                                             |
+| `tavily`               | `TAVILY_API_KEY` (free tier at [tavily.com](https://tavily.com)) |
+
+### Zero-key quickstart (Ollama + DuckDuckGo)
+
+```bash
+# Install Ollama from https://ollama.com, then:
+ollama pull llama3   # or phi3:mini for a lighter model
+
+# .env needs nothing extra — defaults are already set
+pip install -e .   # one-time, registers the CLI
+swarm-intel "Stripe"
+```
+
+---
+
+## Run
 
 **Streamlit UI (recommended):**
 
@@ -88,35 +126,38 @@ streamlit run app.py
 **CLI:**
 
 ```bash
-python main.py "OpenAI"
-python main.py "Stripe"
+swarm-intel "Stripe"
+swarm-intel "OpenAI" --llm openai --model gpt-4o
+swarm-intel "Stripe" --llm claude
+swarm-intel "Stripe" --search tavily
+swarm-intel "Stripe" --output report.md
 ```
+
+| Flag       | Description                                                |
+| ---------- | ---------------------------------------------------------- |
+| `--llm`    | Override LLM provider (`ollama`, `claude`, `openai`)       |
+| `--model`  | Override model name (e.g. `llama3`, `phi3:mini`, `gpt-4o`) |
+| `--search` | Override search provider (`duckduckgo`, `tavily`)          |
+| `--output` | Save report to a file                                      |
 
 ---
 
 ## Dependencies
 
-| Package               | Version | Purpose                                 |
-| --------------------- | ------- | --------------------------------------- |
-| `langgraph`           | ≥0.2.0  | Agent orchestration and graph execution |
-| `langchain-openai`    | ≥0.2.0  | GPT-4o integration                      |
-| `langchain-community` | ≥0.3.0  | Tavily search tool                      |
-| `tavily-python`       | ≥0.3.0  | Web search API                          |
-| `yfinance`            | ≥0.2.0  | Public company financial data           |
-| `streamlit`           | ≥1.39.0 | Web UI                                  |
-| `pydantic`            | ≥2.0.0  | State validation                        |
-| `reportlab`           | ≥4.0.0  | PDF report export                       |
-| `python-dotenv`       | ≥1.0.0  | Environment config                      |
-
----
-
-## AI Tools Used
-
-- **GPT-4o** (OpenAI) — powers all 7 agents for reasoning, extraction, validation, and synthesis
-- **Tavily Search API** — real-time web search used by 5 agents
-- **GitHub REST API** — technical intelligence (unauthenticated or with `GITHUB_TOKEN`)
-- **Yahoo Finance API** — public company financial data via `yfinance`
-- **LangGraph** — orchestration framework managing parallel agent execution and shared state
+| Package                      | Purpose                                 |
+| ---------------------------- | --------------------------------------- |
+| `langgraph`                  | Agent orchestration and graph execution |
+| `langchain-community`        | Search tool adapters                    |
+| `langchain-ollama`           | Ollama LLM provider                     |
+| `langchain-anthropic`        | Claude LLM provider                     |
+| `langchain-openai`           | OpenAI LLM provider                     |
+| `duckduckgo-search` / `ddgs` | Free web search (no key)                |
+| `tavily-python`              | Tavily search API                       |
+| `yfinance`                   | Public company financial data           |
+| `streamlit`                  | Web UI                                  |
+| `pydantic`                   | State validation                        |
+| `reportlab`                  | PDF report export                       |
+| `python-dotenv`              | Environment config                      |
 
 ---
 
@@ -125,7 +166,9 @@ python main.py "Stripe"
 ```
 swarm-intel/
 ├── app.py                  # Streamlit web UI
-├── main.py                 # CLI entry point
+├── main.py                 # CLI entry point (registered as swarm-intel command)
+├── providers.py            # LLM + search provider factory (swap via .env)
+├── pyproject.toml          # package config, registers swarm-intel CLI
 ├── requirements.txt
 ├── .env.example
 ├── agents/
@@ -139,9 +182,8 @@ swarm-intel/
 ├── graph/
 │   ├── state.py            # Shared LangGraph state definition
 │   └── workflow.py         # Graph wiring and fan-out logic
-├── prompts/
-│   └── agent_prompts.py    # System prompts for each agent
-└── output/                 # Generated reports saved here
+└── prompts/
+    └── agent_prompts.py    # System prompts for each agent
 ```
 
 _Built for Microsoft Build AI Hackathon — Agent Swarms track._

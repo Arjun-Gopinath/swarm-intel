@@ -1,8 +1,8 @@
 """Validator agent — cross-checks and reconciles all agent outputs."""
 
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import VALIDATOR_AGENT_PROMPT
+from providers import get_llm
 import json
 
 
@@ -18,7 +18,7 @@ def validator_agent(state: dict) -> dict:
             "regulatory": state.get("regulatory_results", []),
         }
 
-        llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        llm = get_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=VALIDATOR_AGENT_PROMPT),
             HumanMessage(content=f"All agent findings:\n{json.dumps(findings, indent=2, default=str)}"),

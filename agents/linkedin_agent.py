@@ -1,9 +1,8 @@
 """LinkedIn / professional intelligence agent — uses web search as proxy."""
 
-from langchain_openai import ChatOpenAI
-from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import LINKEDIN_AGENT_PROMPT
+from providers import get_llm, get_search
 
 
 def linkedin_agent(state: dict) -> dict:
@@ -12,13 +11,13 @@ def linkedin_agent(state: dict) -> dict:
     errors = []
 
     try:
-        search = TavilySearchResults(max_results=5)
+        search = get_search()
 
         # Two targeted searches: headcount/growth and leadership
         headcount_raw = search.invoke(f"{query} company employees headcount team size LinkedIn")
         leadership_raw = search.invoke(f"{query} CEO founder leadership team executive")
 
-        llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        llm = get_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=LINKEDIN_AGENT_PROMPT),
             HumanMessage(content=(
