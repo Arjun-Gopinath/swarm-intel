@@ -15,6 +15,14 @@ def synthesizer_agent(state: dict) -> dict:
         summaries  = validated.get("agent_summaries", {})
         validation = validated.get("summary", "")
 
+        # Fallback: if validator passed nothing, read agent results directly from state
+        if not summaries:
+            from agents.validator_agent import _primary_content
+            summaries = {
+                k: _primary_content(state.get(f"{k}_results", []))
+                for k in ("news", "financial", "linkedin", "github", "regulatory")
+            }
+
         llm = get_llm(temperature=0.2)
         response = llm.invoke([
             SystemMessage(content=SYNTHESIZER_AGENT_PROMPT),

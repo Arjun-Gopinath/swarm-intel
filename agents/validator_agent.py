@@ -45,6 +45,11 @@ def validator_agent(state: dict) -> dict:
 
     except Exception as e:
         errors.append(f"validator_agent error: {str(e)}")
-        validated = {"summary": "Validation failed.", "raw_findings": {}, "agent_errors": errors}
+        # Still pass agent_summaries so the synthesizer has data even if validation failed
+        fallback_input = {
+            k: _primary_content(state.get(f"{k}_results", []))
+            for k in ("news", "financial", "linkedin", "github", "regulatory")
+        }
+        validated = {"summary": "Validation failed — proceeding with raw findings.", "agent_summaries": fallback_input, "agent_errors": errors}
 
     return {"validated_findings": validated, "errors": errors}
