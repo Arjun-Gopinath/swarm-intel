@@ -2,7 +2,7 @@
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import REGULATORY_AGENT_PROMPT
-from providers import get_llm, get_search
+from providers import get_fast_llm, get_search
 
 
 def regulatory_agent(state: dict) -> dict:
@@ -13,10 +13,10 @@ def regulatory_agent(state: dict) -> dict:
     try:
         search = get_search()
 
-        legal_raw = search.invoke(f"{query} lawsuit litigation legal regulatory violation fine")
-        compliance_raw = search.invoke(f"{query} GDPR CCPA data breach privacy compliance")
+        legal_raw = search.invoke(f"{query} lawsuit litigation legal regulatory violation fine")[:3000]
+        compliance_raw = search.invoke(f"{query} GDPR CCPA data breach privacy compliance")[:3000]
 
-        llm = get_llm(temperature=0)
+        llm = get_fast_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=REGULATORY_AGENT_PROMPT),
             HumanMessage(content=(

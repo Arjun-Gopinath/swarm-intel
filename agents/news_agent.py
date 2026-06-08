@@ -2,7 +2,7 @@
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import NEWS_AGENT_PROMPT
-from providers import get_llm, get_search
+from providers import get_fast_llm, get_search
 
 
 def news_agent(state: dict) -> dict:
@@ -12,9 +12,9 @@ def news_agent(state: dict) -> dict:
 
     try:
         search = get_search()
-        raw = search.invoke(f"{query} company news 2024 2025")
+        raw = search.invoke(f"{query} company news 2024 2025")[:3000]
 
-        llm = get_llm(temperature=0)
+        llm = get_fast_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=NEWS_AGENT_PROMPT),
             HumanMessage(content=f"Company/topic: {query}\n\nRaw search results:\n{raw}"),

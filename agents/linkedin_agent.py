@@ -2,7 +2,7 @@
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import LINKEDIN_AGENT_PROMPT
-from providers import get_llm, get_search
+from providers import get_fast_llm, get_search
 
 
 def linkedin_agent(state: dict) -> dict:
@@ -14,10 +14,10 @@ def linkedin_agent(state: dict) -> dict:
         search = get_search()
 
         # Two targeted searches: headcount/growth and leadership
-        headcount_raw = search.invoke(f"{query} company employees headcount team size LinkedIn")
-        leadership_raw = search.invoke(f"{query} CEO founder leadership team executive")
+        headcount_raw = search.invoke(f"{query} company employees headcount team size LinkedIn")[:3000]
+        leadership_raw = search.invoke(f"{query} CEO founder leadership team executive")[:3000]
 
-        llm = get_llm(temperature=0)
+        llm = get_fast_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=LINKEDIN_AGENT_PROMPT),
             HumanMessage(content=(

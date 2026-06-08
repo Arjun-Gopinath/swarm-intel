@@ -3,7 +3,7 @@
 import requests
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import GITHUB_AGENT_PROMPT
-from providers import get_llm, get_search
+from providers import get_fast_llm, get_search
 import os
 
 
@@ -36,9 +36,9 @@ def github_agent(state: dict) -> dict:
         github_data = _fetch_github_org(org_slug)
 
         search = get_search()
-        web_raw = search.invoke(f"{query} GitHub open source tech stack engineering")
+        web_raw = search.invoke(f"{query} GitHub open source tech stack engineering")[:3000]
 
-        llm = get_llm(temperature=0)
+        llm = get_fast_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=GITHUB_AGENT_PROMPT),
             HumanMessage(content=(

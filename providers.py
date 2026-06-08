@@ -76,6 +76,31 @@ def get_search():
     return SEARCH_REGISTRY[provider]()
 
 
+def get_fast_llm(temperature: float = 0):
+    """Return a smaller/cheaper model for high-volume research agents.
+
+    If LLM_FAST_MODEL is not set, falls back to get_llm() — no behaviour change
+    for users who don't need quota splitting.
+    Set LLM_FAST_MODEL=llama-3.1-8b-instant in .env to split Groq quotas.
+    """
+    fast_model = os.getenv("LLM_FAST_MODEL")
+    if not fast_model:
+        return get_llm(temperature)
+    provider = os.getenv("LLM_PROVIDER", "ollama").lower()
+    if provider not in LLM_REGISTRY:
+        return get_llm(temperature)
+    original = os.environ.get("LLM_MODEL")
+    os.environ["LLM_MODEL"] = fast_model
+    try:
+        llm = LLM_REGISTRY[provider](temperature)
+    finally:
+        if original is None:
+            os.environ.pop("LLM_MODEL", None)
+        else:
+            os.environ["LLM_MODEL"] = original
+    return llm
+
+
 def friendly_error(e: Exception) -> str:
     """Return a human-readable message for common API errors."""
     msg = str(e)

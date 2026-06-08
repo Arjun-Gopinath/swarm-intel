@@ -89,13 +89,16 @@ cp .env.example .env
 
 ### LLM (`LLM_PROVIDER`)
 
-| Value              | Model default     | Requires                                                   |
-| ------------------ | ----------------- | ---------------------------------------------------------- |
-| `ollama` (default) | `llama3`          | [Ollama](https://ollama.com) installed locally, no API key |
-| `claude`           | `claude-opus-4-8` | `ANTHROPIC_API_KEY`                                        |
-| `openai`           | `gpt-4o`          | `OPENAI_API_KEY`                                           |
+| Value              | Model default              | Requires                                                   |
+| ------------------ | -------------------------- | ---------------------------------------------------------- |
+| `ollama` (default) | `llama3`                   | [Ollama](https://ollama.com) installed locally, no API key |
+| `groq`             | `llama-3.3-70b-versatile`  | `GROQ_API_KEY` (free at [console.groq.com](https://console.groq.com)) |
+| `claude`           | `claude-opus-4-8`          | `ANTHROPIC_API_KEY`                                        |
+| `openai`           | `gpt-4o`                   | `OPENAI_API_KEY`                                           |
 
 Override the model with `LLM_MODEL=<model-name>`.
+
+**Token optimisation (Groq free tier):** Set `LLM_FAST_MODEL=llama-3.1-8b-instant` to route the 5 parallel research agents to Groq's smaller model (separate 500k tokens/day quota), reserving the 70B model for the validator and synthesizer only. If not set, all agents use `LLM_MODEL`.
 
 ### Search (`SEARCH_PROVIDER`)
 
