@@ -6,6 +6,14 @@ from providers import get_llm
 import json
 
 
+def _primary_content(items: list) -> str:
+    """Extract the primary synthesized content from an agent's result list."""
+    for item in items:
+        if isinstance(item, dict) and item.get("content"):
+            return item["content"]
+    return "No findings."
+
+
 def validator_agent(state: dict) -> dict:
     errors = []
 
@@ -18,15 +26,20 @@ def validator_agent(state: dict) -> dict:
             "regulatory": state.get("regulatory_results", []),
         }
 
+        # Pass only the primary synthesized content per agent — each agent's LLM
+        # already distilled the raw search results, so this is the actual finding,
+        # not a truncation. Full findings stay in state for the synthesizer.
+        validator_input = {k: _primary_content(v) for k, v in findings.items()}
+
         llm = get_llm(temperature=0)
         response = llm.invoke([
             SystemMessage(content=VALIDATOR_AGENT_PROMPT),
-            HumanMessage(content=f"All agent findings:\n{json.dumps(findings, indent=2, default=str)}"),
+            HumanMessage(content=f"All agent findings:\n{json.dumps(validator_input, indent=2, default=str)}"),
         ])
 
         validated = {
             "summary": response.content,
-            "raw_findings": findings,
+            "agent_summaries": validator_input,  # content-only, raw_sources excluded
             "agent_errors": state.get("errors", []),
         }
 

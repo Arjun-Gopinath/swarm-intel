@@ -10,15 +10,18 @@ def synthesizer_agent(state: dict) -> dict:
     errors = []
 
     try:
-        validated = state.get("validated_findings", {})
-        query = state.get("query", "Unknown company")
+        validated  = state.get("validated_findings", {})
+        query      = state.get("query", "Unknown company")
+        summaries  = validated.get("agent_summaries", {})
+        validation = validated.get("summary", "")
 
         llm = get_llm(temperature=0.2)
         response = llm.invoke([
             SystemMessage(content=SYNTHESIZER_AGENT_PROMPT),
             HumanMessage(content=(
                 f"Research subject: {query}\n\n"
-                f"Validated findings:\n{json.dumps(validated, indent=2, default=str)}"
+                f"Validation notes:\n{validation}\n\n"
+                f"Agent findings:\n{json.dumps(summaries, indent=2, default=str)}"
             )),
         ])
 
