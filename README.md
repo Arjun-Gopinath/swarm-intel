@@ -69,9 +69,11 @@ cd swarm-intel
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-pip install -r requirements.txt
-pip install -e .           # registers the swarm-intel CLI command
-pip install -e .           # registers the swarm-intel CLI command
+# Install core + your chosen providers (no need to install everything)
+pip install -e ".[ollama,duckduckgo]"     # zero-key default
+pip install -e ".[ollama,duckduckgo,ui]"  # + Streamlit UI
+pip install -e ".[claude,tavily]"         # Claude + Tavily
+pip install -e ".[all]"                   # everything
 ```
 
 ### Configure

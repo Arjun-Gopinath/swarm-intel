@@ -6,11 +6,13 @@ A multi-agent due diligence research swarm built with LangGraph. Given a company
 
 ## How to run
 
-After cloning, register the CLI once:
+After cloning, install only the providers you need:
 
 ```bash
-pip install -r requirements.txt
-pip install -e .
+pip install -e ".[ollama,duckduckgo]"     # zero-key default
+pip install -e ".[ollama,duckduckgo,ui]"  # + Streamlit UI
+pip install -e ".[claude,tavily]"         # Claude + Tavily
+pip install -e ".[all]"                   # everything
 ```
 
 Then run from anywhere:
