@@ -8,6 +8,7 @@ To add a new provider: add one entry to LLM_REGISTRY or SEARCH_REGISTRY.
 """
 
 import os
+import re
 from typing import Callable
 
 
@@ -73,3 +74,20 @@ def get_search():
             f"Available: {', '.join(SEARCH_REGISTRY)}"
         )
     return SEARCH_REGISTRY[provider]()
+
+
+def friendly_error(e: Exception) -> str:
+    """Return a human-readable message for common API errors."""
+    msg = str(e)
+    if "429" in msg or "rate_limit_exceeded" in msg:
+        # Try to extract retry time from Groq's error message
+        match = re.search(r"Please try again in ([\w.]+)", msg)
+        retry = f" Please try again in {match.group(1)}." if match else ""
+        if "tokens per day" in msg:
+            return f"Daily token limit reached on the free tier.{retry}"
+        if "tokens per minute" in msg:
+            return f"Per-minute token limit reached.{retry}"
+        return f"Rate limit reached.{retry}"
+    if "413" in msg:
+        return "Request too large for the model. Try a shorter query."
+    return msg

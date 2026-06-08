@@ -2,7 +2,7 @@
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import VALIDATOR_AGENT_PROMPT
-from providers import get_llm
+from providers import get_llm, friendly_error
 import json
 
 
@@ -44,7 +44,7 @@ def validator_agent(state: dict) -> dict:
         }
 
     except Exception as e:
-        errors.append(f"validator_agent error: {str(e)}")
+        errors.append(f"validator_agent error: {friendly_error(e)}")
         # Still pass agent_summaries so the synthesizer has data even if validation failed
         fallback_input = {
             k: _primary_content(state.get(f"{k}_results", []))

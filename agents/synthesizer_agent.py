@@ -2,7 +2,7 @@
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from prompts.agent_prompts import SYNTHESIZER_AGENT_PROMPT
-from providers import get_llm
+from providers import get_llm, friendly_error
 import json
 
 
@@ -36,7 +36,8 @@ def synthesizer_agent(state: dict) -> dict:
         report = response.content
 
     except Exception as e:
-        errors.append(f"synthesizer_agent error: {str(e)}")
-        report = f"Report generation failed: {str(e)}"
+        msg = friendly_error(e)
+        errors.append(f"synthesizer_agent error: {msg}")
+        report = f"Report generation failed: {msg}"
 
     return {"final_report": report, "errors": errors}
