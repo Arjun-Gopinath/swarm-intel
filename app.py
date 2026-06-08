@@ -177,9 +177,9 @@ for _k, _v in [("running", False), ("results", None), ("last_query", "")]:
         st.session_state[_k] = _v
 
 # ── Hero ──────────────────────────────────────────────────────────────────────
-st.markdown('<p class="hero-title">🕵️ swarm-intel</p>', unsafe_allow_html=True)
+st.markdown('<h2 class="hero-title">🕵️ swarm-intel</h2>', unsafe_allow_html=True)
 st.markdown(
-    '<p class="hero-subtitle">Multi-agent due diligence research swarm · 5 agents in parallel</p>',
+    '<p class="hero-subtitle">Multi-agent due diligence research swarm</p>',
     unsafe_allow_html=True,
 )
 
