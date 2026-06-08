@@ -1,6 +1,8 @@
 """Streamlit UI for swarm-intel — Multi-Agent Due Diligence Swarm."""
 
 import os
+import io
+import re
 import time
 import streamlit as st
 from dotenv import load_dotenv
@@ -272,6 +274,57 @@ def _card_html(icon: str, name: str, status: str) -> str:
     )
 
 
+# ── Export helpers ────────────────────────────────────────────────────────────
+
+def _report_to_pdf(markdown_text: str, company: str) -> bytes:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import mm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
+    from reportlab.lib import colors
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=A4,
+        leftMargin=20*mm, rightMargin=20*mm,
+        topMargin=20*mm, bottomMargin=20*mm,
+    )
+
+    styles = getSampleStyleSheet()
+    style_h1 = ParagraphStyle("H1", parent=styles["Heading1"], fontSize=18, spaceAfter=6, textColor=colors.HexColor("#1a1a2e"))
+    style_h2 = ParagraphStyle("H2", parent=styles["Heading2"], fontSize=14, spaceAfter=4, textColor=colors.HexColor("#16213e"))
+    style_h3 = ParagraphStyle("H3", parent=styles["Heading3"], fontSize=11, spaceAfter=3, textColor=colors.HexColor("#0f3460"))
+    style_body = ParagraphStyle("Body", parent=styles["Normal"], fontSize=10, leading=16, spaceAfter=6)
+    style_bullet = ParagraphStyle("Bullet", parent=style_body, leftIndent=12, bulletIndent=0, spaceAfter=3)
+
+    story = []
+
+    # Cover title
+    story.append(Paragraph(f"Due Diligence Report: {company}", style_h1))
+    story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#cccccc")))
+    story.append(Spacer(1, 6))
+
+    for line in markdown_text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            story.append(Spacer(1, 4))
+        elif stripped.startswith("### "):
+            story.append(Paragraph(stripped[4:], style_h3))
+        elif stripped.startswith("## "):
+            story.append(Paragraph(stripped[3:], style_h2))
+        elif stripped.startswith("# "):
+            story.append(Paragraph(stripped[2:], style_h1))
+        elif stripped.startswith(("- ", "* ", "• ")):
+            text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", stripped[2:])
+            story.append(Paragraph(f"• {text}", style_bullet))
+        else:
+            text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", stripped)
+            story.append(Paragraph(text, style_body))
+
+    doc.build(story)
+    return buf.getvalue()
+
+
 # ── Trigger run ───────────────────────────────────────────────────────────────
 if run and query:
     st.session_state.running = True
@@ -434,7 +487,9 @@ if st.session_state.running or st.session_state.results:
         report  = res.get("final_report", "No report generated.")
 
         st.markdown("---")
-        col_title, col_time, col_dl = st.columns([5, 2, 1])
+        col_title, col_time, col_md, col_pdf = st.columns([5, 2, 1, 1])
+        slug = res.get("_query", "report").replace(" ", "_")
+        company_name = res.get("_query", "Company")
         with col_title:
             st.markdown('<p class="section-label">Due Diligence Report</p>', unsafe_allow_html=True)
         with col_time:
@@ -442,12 +497,19 @@ if st.session_state.running or st.session_state.results:
                 f'<p style="color:#8b949e;font-size:0.8rem;padding-top:6px">✅ Completed in {elapsed:.1f}s</p>',
                 unsafe_allow_html=True,
             )
-        with col_dl:
+        with col_md:
             st.download_button(
-                "⬇️ Export",
+                "⬇️ .md",
                 data=report,
-                file_name=f"{res.get('_query', 'report').replace(' ', '_')}_due_diligence.txt",
-                mime="text/plain",
+                file_name=f"{slug}_due_diligence.md",
+                mime="text/markdown",
+            )
+        with col_pdf:
+            st.download_button(
+                "⬇️ PDF",
+                data=_report_to_pdf(report, company_name),
+                file_name=f"{slug}_due_diligence.pdf",
+                mime="application/pdf",
             )
 
         st.markdown(report)
