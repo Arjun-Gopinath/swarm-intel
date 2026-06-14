@@ -2,7 +2,7 @@
 
 **Multi-Agent Due Diligence Research Swarm** — built for the Microsoft Build AI Hackathon (Agent Swarms track).
 
-Given a company name or topic, swarm-intel dispatches 5 specialized AI agents in parallel to research news, financials, professional data, technical presence, and regulatory exposure — then cross-validates and synthesizes everything into a structured analyst brief.
+Given a company name or topic, swarm-intel dispatches specialized AI agents in parallel to research news, financials, professional data, technical presence, and regulatory exposure — then cross-validates and synthesizes everything into a structured analyst brief. Optionally, a Katzilla agent pulls primary-source government data (SEC EDGAR, federal court opinions) with cryptographic citation hashes when `KATZILLA_API_KEY` is set.
 
 ---
 
@@ -10,15 +10,16 @@ Given a company name or topic, swarm-intel dispatches 5 specialized AI agents in
 
 A single query triggers a coordinated swarm:
 
-| Agent             | Focus                                         |
-| ----------------- | --------------------------------------------- |
-| News Agent        | Recent news, funding, leadership changes      |
-| Financial Agent   | Revenue, valuation, funding history           |
-| LinkedIn Agent    | Headcount, leadership, team growth            |
-| GitHub Agent      | Tech stack, OSS activity, engineering culture |
-| Regulatory Agent  | Lawsuits, compliance risks, violations        |
-| Validator Agent   | Cross-checks conflicting facts, flags gaps    |
-| Synthesizer Agent | Produces the final 10-section analyst report  |
+| Agent                    | Focus                                                              |
+| ------------------------ | ------------------------------------------------------------------ |
+| News Agent               | Recent news, funding, leadership changes                           |
+| Financial Agent          | Revenue, valuation, funding history                                |
+| LinkedIn Agent           | Headcount, leadership, team growth                                 |
+| GitHub Agent             | Tech stack, OSS activity, engineering culture                      |
+| Regulatory Agent         | Lawsuits, compliance risks, violations                             |
+| Katzilla Agent *(opt.)* | SEC EDGAR filings + federal court opinions with citation hashes    |
+| Validator Agent          | Cross-checks conflicting facts, flags gaps                         |
+| Synthesizer Agent        | Produces the final 10-section analyst report                       |
 
 ---
 
@@ -31,10 +32,11 @@ User Query
 [Orchestrator — LangGraph fan-out via Send()]
     │
     ├──► [News Agent]
-    ├──► [Financial Agent]     ← run in parallel
+    ├──► [Financial Agent]        ← run in parallel
     ├──► [LinkedIn Agent]
     ├──► [GitHub Agent]
-    └──► [Regulatory Agent]
+    ├──► [Regulatory Agent]
+    └──► [Katzilla Agent] (opt.)  ← SEC EDGAR + CourtListener w/ citation hashes
               │
               ▼ (all converge)
          [Validator Agent]
@@ -106,6 +108,16 @@ Override the model with `LLM_MODEL=<model-name>`.
 | ---------------------- | ---------------------------------------------------------------- |
 | `duckduckgo` (default) | Nothing — no API key                                             |
 | `tavily`               | `TAVILY_API_KEY` (free tier at [tavily.com](https://tavily.com)) |
+
+### Primary Sources — Katzilla *(optional)*
+
+Set `KATZILLA_API_KEY` to enable a 6th parallel agent that pulls from SEC EDGAR and federal court records (CourtListener) instead of web search. Each response includes a SHA-256 citation hash and a `certainty_score`.
+
+```bash
+KATZILLA_API_KEY=kz_live_...   # free tier: 1,000 calls/month — katzilla.dev
+```
+
+Best suited for US public companies. For private or non-US companies the agent returns empty results gracefully — no errors, no wasted quota.
 
 ### Zero-key quickstart (Ollama + DuckDuckGo)
 
@@ -182,6 +194,7 @@ swarm-intel/
 │   ├── linkedin_agent.py
 │   ├── github_agent.py
 │   ├── regulatory_agent.py
+│   ├── katzilla_agent.py       # optional — SEC EDGAR + CourtListener (needs KATZILLA_API_KEY)
 │   ├── validator_agent.py
 │   └── synthesizer_agent.py
 ├── graph/
