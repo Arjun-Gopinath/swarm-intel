@@ -17,6 +17,7 @@ class ResearchState(TypedDict):
     linkedin_results: Annotated[list[dict], operator.add]
     github_results: Annotated[list[dict], operator.add]
     regulatory_results: Annotated[list[dict], operator.add]
+    primary_source_results: Annotated[list[dict], operator.add]
 
     # Downstream
     validated_findings: dict[str, Any]  # Validator output

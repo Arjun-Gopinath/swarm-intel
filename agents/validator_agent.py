@@ -24,6 +24,7 @@ def validator_agent(state: dict) -> dict:
             "linkedin": state.get("linkedin_results", []),
             "github": state.get("github_results", []),
             "regulatory": state.get("regulatory_results", []),
+            "primary_source": state.get("primary_source_results", []),
         }
 
         # Pass only the primary synthesized content per agent — each agent's LLM
@@ -48,7 +49,7 @@ def validator_agent(state: dict) -> dict:
         # Still pass agent_summaries so the synthesizer has data even if validation failed
         fallback_input = {
             k: _primary_content(state.get(f"{k}_results", []))
-            for k in ("news", "financial", "linkedin", "github", "regulatory")
+            for k in ("news", "financial", "linkedin", "github", "regulatory", "primary_source")
         }
         validated = {"summary": "Validation failed — proceeding with raw findings.", "agent_summaries": fallback_input, "agent_errors": errors}
 

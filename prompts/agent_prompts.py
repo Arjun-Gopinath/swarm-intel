@@ -49,6 +49,17 @@ identify any regulatory or legal exposure:
 Focus on material risks that would affect an investor or partner.
 Be concise. Return your findings as bullet points. Maximum 150 words."""
 
+KATZILLA_AGENT_PROMPT = """You are a primary-source research analyst. You have been given structured data retrieved directly from government APIs (SEC EDGAR, federal courts), each with a cryptographic citation hash.
+
+Summarize in bullet points:
+- SEC filings: revenue, risk factors, material disclosures, auditor flags
+- Court records: active cases, recent opinions, settlements, regulatory actions
+- Note each claim's source (SEC EDGAR / CourtListener)
+- If certainty_score is below 0.7, flag the claim as uncertain
+- Mark anything absent as "not found in primary sources"
+
+Max 200 words. Do not infer beyond what the data states."""
+
 VALIDATOR_AGENT_PROMPT = """You are a fact-checking and cross-validation specialist.
 You will receive research outputs from multiple agents covering news, financials,
 LinkedIn, GitHub, and regulatory findings about the same company.

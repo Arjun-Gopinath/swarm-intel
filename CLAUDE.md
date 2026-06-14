@@ -2,7 +2,7 @@
 
 ## What this project is
 
-A multi-agent due diligence research swarm built with LangGraph. Given a company name, it fans out 5 research agents in parallel, then validates and synthesizes the results into a structured analyst report.
+A multi-agent due diligence research swarm built with LangGraph. Given a company name, it fans out research agents in parallel, then validates and synthesizes the results into a structured analyst report. A Katzilla agent pulls primary-source government data (SEC EDGAR, CourtListener) when `KATZILLA_API_KEY` is set.
 
 ## How to run
 
@@ -37,6 +37,7 @@ LLM_MODEL=llama3             # optional model override
 LLM_FAST_MODEL=              # optional — smaller model for research agents only
                              # e.g. llama-3.1-8b-instant on Groq splits the daily quota
 SEARCH_PROVIDER=duckduckgo   # duckduckgo | tavily
+KATZILLA_API_KEY=            # optional — enables primary-source SEC/court data. See [here](https://katzilla.dev/docs)
 ```
 
 The factory lives in `providers.py`. To add a new provider, add a branch to `get_llm()` or `get_search()` there — agents never import provider libraries directly.
@@ -72,8 +73,8 @@ Validator and synthesizer agents use `get_llm()` (quality model, no search).
 
 ## LangGraph flow
 
-1. `__start__` → `dispatch_agents()` fans out via `Send()` to all 5 research agents in parallel
-2. All 5 converge into `validator`
+1. `__start__` → `dispatch_agents()` fans out via `Send()` to all research agents in parallel
+2. All agents converge into `validator`
 3. `validator` → `synthesizer` → `END`
 
 ## Adding a new agent

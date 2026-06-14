@@ -9,6 +9,7 @@ from agents.financial_agent import financial_agent
 from agents.linkedin_agent import linkedin_agent
 from agents.github_agent import github_agent
 from agents.regulatory_agent import regulatory_agent
+from agents.katzilla_agent import katzilla_agent
 from agents.validator_agent import validator_agent
 from agents.synthesizer_agent import synthesizer_agent
 
@@ -22,6 +23,7 @@ def dispatch_agents(state: ResearchState):
         Send("linkedin_agent", {"query": query}),
         Send("github_agent", {"query": query}),
         Send("regulatory_agent", {"query": query}),
+        Send("katzilla_agent", {"query": query}),
     ]
 
 
@@ -34,6 +36,7 @@ def build_graph() -> StateGraph:
     graph.add_node("linkedin_agent", linkedin_agent)
     graph.add_node("github_agent", github_agent)
     graph.add_node("regulatory_agent", regulatory_agent)
+    graph.add_node("katzilla_agent", katzilla_agent)
 
     # Downstream agents
     graph.add_node("validator", validator_agent)
@@ -43,7 +46,7 @@ def build_graph() -> StateGraph:
     graph.add_conditional_edges("__start__", dispatch_agents)
 
     # All research agents feed into the validator
-    for agent in ["news_agent", "financial_agent", "linkedin_agent", "github_agent", "regulatory_agent"]:
+    for agent in ["news_agent", "financial_agent", "linkedin_agent", "github_agent", "regulatory_agent", "katzilla_agent"]:
         graph.add_edge(agent, "validator")
 
     graph.add_edge("validator", "synthesizer")

@@ -54,6 +54,33 @@ SEARCH_REGISTRY: dict[str, Callable[[], object]] = {
 }
 
 
+# ── Katzilla client ───────────────────────────────────────────────────────────
+
+def get_katzilla():
+    """Return a Katzilla REST client, or None if KATZILLA_API_KEY is not set."""
+    api_key = os.getenv("KATZILLA_API_KEY", "")
+    if not api_key:
+        return None
+
+    import requests as _requests
+
+    class _KatzillaClient:
+        _BASE = "https://api.katzilla.dev"
+        _HEADERS = {"X-API-Key": api_key, "Content-Type": "application/json"}
+
+        def query(self, agent: str, action: str, params: dict) -> dict:
+            r = _requests.post(
+                f"{self._BASE}/agents/{agent}/actions/{action}",
+                headers=self._HEADERS,
+                json=params,
+                timeout=15,
+            )
+            r.raise_for_status()
+            return r.json()
+
+    return _KatzillaClient()
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def get_llm(temperature: float = 0):
