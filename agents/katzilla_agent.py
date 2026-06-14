@@ -31,12 +31,14 @@ def katzilla_agent(state: dict) -> dict:
                 inner = result["data"]
                 records = next((v for v in inner.values() if isinstance(v, list)), []) if isinstance(inner, dict) else inner
                 data_str = str(records)[:1500]
+                # Pull per-document URLs from the records themselves (more useful than the generic API endpoint)
+                doc_urls = [r["url"] for r in records[:3] if isinstance(r, dict) and r.get("url")]
                 findings.append({
                     "source":       result["citation"]["source_name"],
-                    "url":          result["citation"]["source_url"],
                     "retrieved_at": result["citation"]["retrieved_at"],
-                    "hash":         result["citation"]["data_hash"],
+                    "hash":         result["citation"]["data_hash"],  # kept for audit log, not shown in report
                     "certainty":    result["quality"]["certainty_score"],
+                    "doc_urls":     doc_urls,
                     "data":         data_str,
                 })
         except Exception as e:
@@ -54,7 +56,15 @@ def katzilla_agent(state: dict) -> dict:
     return {
         "primary_source_results": [{
             "content":   response.content,
-            "citations": [{"source": f["source"], "hash": f["hash"], "url": f["url"]} for f in findings],
+            "citations": [
+                {
+                    "source":       f["source"],
+                    "retrieved_at": f["retrieved_at"],
+                    "doc_urls":     f["doc_urls"],
+                    "hash":         f["hash"],  # audit only — not rendered in report
+                }
+                for f in findings
+            ],
         }],
         "errors": errors,
     }

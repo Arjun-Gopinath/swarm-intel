@@ -96,7 +96,7 @@ Produce a report with the following sections:
 8. Key Risks
 9. Key Opportunities
 10. Recommendation & Confidence Score (0-100)
-11. Primary Sources (only if primary_source data was available — list each source with its citation footnote and SHA-256 hash)
+11. Primary Sources (only if primary_source data was available — list each source with its name, retrieval date, and links to the specific documents retrieved)
 
 Format rules:
 - Use ## for each section header

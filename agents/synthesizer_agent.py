@@ -32,8 +32,14 @@ def synthesizer_agent(state: dict) -> dict:
 
         citations_block = ""
         if citations:
-            lines = [f"  - {c['source']} | {c['url']} | hash: {c['hash']}" for c in citations]
-            citations_block = "\n\nPrimary source citations (include in section 11):\n" + "\n".join(lines)
+            lines = []
+            for i, c in enumerate(citations, 1):
+                urls = "\n".join(f"    - {u}" for u in c.get("doc_urls", []))
+                entry = f"  [{i}] {c['source']} — retrieved {c['retrieved_at'][:10]}"
+                if urls:
+                    entry += f"\n{urls}"
+                lines.append(entry)
+            citations_block = "\n\nPrimary source citations (render as section 11 — do not include the retrieval date label, just the source name and URLs as footnotes):\n" + "\n".join(lines)
 
         llm = get_llm(temperature=0.2)
         response = llm.invoke([
